@@ -38,12 +38,12 @@ export class Assignment4 extends Scene {
                 texture: new Texture("assets/stars.png", "NEAREST")
             }),
 
-            gojo: new Material(new Textured_Phong(), {
+            gojo: new Material(new Texture_Rotate(), {
                 color: hex_color("#000000"),
                 ambient: 1, diffusivity: 0.1, specularity: 0.1,
                 texture: new Texture("assets/gojo.jpg", "NEAREST")
             }),
-            toge: new Material(new Textured_Phong(), {
+            toge: new Material(new Texture_Scroll_X(), {
                 color: hex_color("#000000"),
                 ambient: 1, diffusivity: 0.1, specularity: 0.1,
                 texture: new Texture("assets/toge.jpg", "LINEAR_MIPMAP_LINEAR")
@@ -111,11 +111,41 @@ class Texture_Scroll_X extends Textured_Phong {
             uniform float animation_time;
             
             void main(){
-                
-
-
                 // Sample the texture image in the correct place:
-                vec4 tex_color = texture2D( texture, f_tex_coord);
+
+                float slide_trans = mod(animation_time, 4.) * 2.; 
+                mat4 slide_matrix = mat4(vec4(-1., 0., 0., 0.), 
+                                   vec4( 0., 1., 0., 0.), 
+                                   vec4( 0., 0., 1., 0.), 
+                                   vec4(slide_trans, 0., 0., 1.)); 
+
+                vec4 new_tex_coord = vec4(f_tex_coord, 0, 0) + vec4(1., 1., 0., 1.); 
+                new_tex_coord = slide_matrix * new_tex_coord; 
+
+                vec4 tex_color = texture2D(texture, new_tex_coord.xy);
+
+                //BLACK OUTLINE
+
+                float u = mod(new_tex_coord.x, 1.0);
+                float v = mod(new_tex_coord.y, 1.0);
+
+                // left edge
+                if (u > 0.15 && u < 0.25 && v > 0.15 && v < 0.85) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                 }
+                // right edge
+                if (u > 0.75 && u < 0.85 && v > 0.15 && v < 0.85) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                 }
+                // bottom edge
+                if (v > 0.15 && v < 0.25 && u > 0.15 && u < 0.85) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                 }
+                // top edge
+                if (v > 0.75 && v < 0.85 && u > 0.15 && u < 0.85) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                }
+
                 if( tex_color.w < .01 ) discard;
                                                                          // Compute an initial (ambient) color:
                 gl_FragColor = vec4( ( tex_color.xyz + shape_color.xyz ) * ambient, shape_color.w * tex_color.w ); 
@@ -135,7 +165,39 @@ class Texture_Rotate extends Textured_Phong {
             uniform float animation_time;
             void main(){
                 // Sample the texture image in the correct place:
-                vec4 tex_color = texture2D( texture, f_tex_coord );
+
+                float rotate_angle = 0.5 * 3.1415926535987 * mod(animation_time, 4.);
+                mat4 rot_matrix = mat4(vec4(cos(rotate_angle), sin(rotate_angle), 0., 0.), 
+                                  vec4(sin(rotate_angle), -cos(rotate_angle), 0., 0.), 
+                                  vec4( 0., 0., 1., 0.), 
+                                  vec4( 0., 0., 0., 1.));
+
+                vec4 new_tex_coord = vec4(f_tex_coord, 0, 0) + vec4(-.5, -.5, 0., 0.);
+                new_tex_coord = (rot_matrix * new_tex_coord) + vec4(.5, .5, 0., 0.); 
+
+                vec4 tex_color = texture2D( texture, new_tex_coord.xy );
+
+                //BLACK OUTLINE
+                float u = mod(new_tex_coord.x, 1.0);
+                float v = mod(new_tex_coord.y, 1.0);
+
+                // left edge
+                if (u > 0.15 && u < 0.25 && v > 0.15 && v < 0.85) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                 }
+                // right edge
+                if (u > 0.75 && u < 0.85 && v > 0.15 && v < 0.85) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                 }
+                // bottom edge
+                if (v > 0.15 && v < 0.25 && u > 0.15 && u < 0.85) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                 }
+                // top edge
+                if (v > 0.75 && v < 0.85 && u > 0.15 && u < 0.85) {
+                     tex_color = vec4(0, 0, 0, 1.0);
+                }
+
                 if( tex_color.w < .01 ) discard;
                                                                          // Compute an initial (ambient) color:
                 gl_FragColor = vec4( ( tex_color.xyz + shape_color.xyz ) * ambient, shape_color.w * tex_color.w ); 
